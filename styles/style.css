@@ -1,0 +1,561 @@
+@import url("https://fonts.googleapis.com/css2?family=Jost&family=Press+Start+2P&display=swap");
+
+body {
+    padding: 0;
+    margin: 0;
+    background-color: #101010;
+    font-family: "Press Start 2P", cursive;
+}
+
+.attackBtn {
+    position: absolute;
+    width: 10%;
+    height: 10%;
+    background-color: rgba(0, 0, 0, 0);
+    background-repeat: no-repeat;
+    background-size: cover;
+    z-index: 119;
+    left:45%;
+    top:87%;
+}
+
+.frame {
+    position: absolute;
+    width: 100%;
+    max-width: 500px;
+    aspect-ratio: 1 / 1;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    overflow: hidden;
+}
+
+
+.background {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    z-index: 99;
+}
+
+.battleReportContainer {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    z-index: 120;
+    left: 0;
+    top: 0;
+    /*visibility: hidden;*/
+}
+
+.battleReport {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    z-index: 120;
+    left: 0;
+    top: 0;
+}
+
+.battleReportText {
+    float: left;
+    position: absolute;
+    text-align: right;
+    font-size: 9px;
+    user-select: none;
+    color: #b3571f;
+    z-index: 125;
+    line-height: 190%;
+    font-weight: 800;
+}
+
+.battleReportTitle {
+    float: left;
+    position: absolute;
+    text-align: right;
+    font-size: 16px;
+    user-select: none;
+    color: #b3571f;
+    z-index: 125;
+    line-height: 190%;
+    left: 15%;
+    top: 8%;
+    text-align: center;
+    width: 70%;
+    font-weight: 1000;
+
+}
+
+.brIcon {
+    width: 4%;
+    height: 4%;
+    position: absolute;
+    z-index: 130;
+}
+
+.brCloseButton {
+    width: 4%;
+    height: 4%;
+    position: absolute;
+    z-index: 130;
+
+}
+
+.grave {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 101;
+}
+
+.brCloseButton:hover {
+    transform: scale(1.2);
+}
+
+.burnedAttacker {
+    float: left;
+    margin-left: 10%;
+    margin-top: 10%;
+    width: 80%;
+    height: 80%;
+    position: absolute;
+    z-index: 110;
+    visibility: hidden;
+    left: 0;
+    top: 0;
+    transform: scale(0.7) translate(-50%, 0%);
+}
+
+.burnedDefender {
+    float: left;
+    margin-left: 10%;
+    margin-top: 10%;
+    width: 80%;
+    height: 80%;
+    position: absolute;
+    visibility: hidden;
+    z-index: 110;
+    left: 0;
+    top: 0;
+    transform: scale(-0.7, 0.7) translate(-50%);
+}
+
+.tokenContainer {
+    float: left;
+    margin-left: 10%;
+    margin-top: 10%;
+    width: 80%;
+    height: 80%;
+    position: absolute;
+    z-index: 101;
+    top: 0;
+    left: 0;
+}
+
+.attackerContainer {
+    float: left;
+    margin-left: 10%;
+    margin-top: 10%;
+    width: 80%;
+    height: 80%;
+    position: absolute;
+    z-index: 101;
+    left: 0;
+    top: 0;
+    transform: scale(0.7) translate(-50%, -150%);
+
+}
+
+.fire {
+    float: left;
+    position: absolute;
+    margin-left: -15%;
+    margin-top: 4%;
+    top: 20%;
+    left: 5%;
+    width: 60%;
+    height: 60%;
+    z-index: 115;
+}
+
+.traitImage {
+    float: left;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 101;
+    transform: scaleX(-1);
+}
+
+.attackerTraitImage {
+    transform: scaleX(1);
+}
+
+.baseText {
+    width: 27%;
+    height: 4%;
+    float: left;
+    position: absolute;
+    z-index: 104;
+    text-align: right;
+    color: #E8D282;
+    font-size: 12px;
+    user-select: none;
+}
+
+.nameFrame {
+    width: 40%;
+    float: left;
+    position: absolute;
+    height: auto;
+    z-index: 102;
+    top: 1%;
+    left: 50%;
+    transform: translate(-50%);
+}
+
+.nameValue {
+    left: 32%;
+    top: 4.5%;
+    width: 36%;
+    text-align: center;
+}
+
+.nameButton {
+    width: 40%;
+    height: 8%;
+    z-index: 120;
+    position: absolute;
+    top: 1.5%;
+    left: 30%;
+    cursor: pointer;
+}
+
+.woodenFrame {
+    width: 42%;
+    float: left;
+    position: absolute;
+    height: auto;
+    z-index: 102;
+    display: flex;
+}
+
+.bountyFrame {
+    bottom: 2%;
+    left: 1%;
+}
+
+.stackFrame {
+    bottom: 2%;
+    right: 1%;
+}
+
+.icon {
+    width: 8%;
+    height: auto;
+    float: left;
+    position: absolute;
+    z-index: 103;
+}
+
+.bountyIcon {
+    left: 4%;
+    bottom: 5%;
+}
+
+.stackIcon {
+    left: 59%;
+    bottom: 5%;
+}
+
+.bountyValue {
+    left: 13%;
+    bottom: 8%;
+}
+
+.bountyCurrency {
+    left: 13%;
+    bottom: 4%;
+}
+
+.bountyButton {
+    width: 41%;
+    height: 14%;
+    z-index: 120;
+    position: absolute;
+    bottom: 2%;
+    left: 1.5%;
+    cursor: pointer;
+}
+
+.stackValue {
+    left: 69%;
+    bottom: 8%;
+}
+
+.stackCurrency {
+    left: 69%;
+    bottom: 4%;
+}
+
+.stackButton {
+    width: 41%;
+    height: 14%;
+    z-index: 120;
+    position: absolute;
+    bottom: 2%;
+    left: 57.5%;
+    cursor: pointer;
+}
+
+.bubble {
+    width: 80%;
+    height: auto;
+    float: left;
+    position: absolute;
+    z-index: 105;
+    left: 10%;
+    top: 6%;
+    visibility: hidden;
+}
+
+.bubbleText {
+    width: 70%;
+    left: 16%;
+    top: 15%;
+    text-align: left;
+    color: black;
+    font-weight: 1000;
+    z-index: 105;
+    line-height: 125%;
+    visibility: hidden;
+
+}
+
+.inventoryButton {
+    border: 0;
+    border-color: transparent;
+    width: 12%;
+    height: 12%;
+    z-index: 103;
+    position: absolute;
+    top: 1%;
+    left: 1%;
+    cursor: pointer;
+    background-size: cover;
+}
+
+.inventory {
+    display: block;
+    width: 1%;
+    height: 1%;
+    z-index: 104;
+    position: absolute;
+    top: 1%;
+    left: 1%;
+    cursor: pointer;
+}
+
+.statButton {
+    width: 50%;
+    height: 10%;
+    z-index: 104;
+    position: absolute;
+    left: 25%;
+    cursor: pointer;
+    visibility: hidden;
+}
+
+.statsContainer {
+    background-image: url("../assets/sprites/inventory/FrameStats.png");
+    position: absolute;
+    width: 24%;
+    height: 31%;
+    left: 75%;
+    top: 17%;
+    visibility: hidden;
+    z-index: 115;
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
+.statIcon {
+    position: absolute;
+    width: 20%;
+    height: 16%;
+    left: 10%;
+}
+
+.statsTitle {
+    font-size: 8px;
+    position: absolute;
+    top: 6%;
+    width: 80%;
+    left: 10%;
+    height: 20%;
+    line-height: 300%;
+    text-align: center;
+}
+
+.statValue {
+    font-size: 10px;
+    position: absolute;
+    width: 75%;
+    left: 12%;
+    height: 20%;
+    line-height: 300%;
+    text-align: right;
+}
+
+.prisonBowl {
+    background-image: url("../assets/sprites/Prisoned.png");
+    z-index: 116;
+    background-size: cover;
+    background-repeat: no-repeat;
+    position: absolute;
+    width: 54%;
+    height: 35%;
+    left: 52%;
+    top: 56%;
+}
+
+.prisonValue {
+    font-size: 10px;
+    position: absolute;
+    width: 127%;
+    left: 0%;
+    top: 32%;
+    height: 100%;
+    line-height: 100%;
+    text-align: center;
+
+}
+
+.prisonValueTitle {
+    top: 42%;
+
+}
+
+.backflipAnimation {
+    animation-name: backflip;
+    animation-duration: 0.6s;
+    animation-timing-function: ease-out;
+    animation-delay: 0;
+    animation-direction: alternate;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+    animation-play-state: running;
+}
+
+.attackAnimation {
+    animation-name: attack;
+    animation-duration: 0.4s;
+    animation-timing-function: ease-out;
+    animation-delay: 0;
+    animation-direction: alternate;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+    animation-play-state: running;
+}
+
+.dropAnimation {
+    animation-name: drop;
+    animation-duration: 0.5s;
+    animation-timing-function: ease-in;
+    animation-delay: 0;
+    animation-direction: alternate;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+    animation-play-state: running;
+}
+
+.attackerAttackAnimation {
+    animation-name: attackerAttack;
+    animation-duration: 0.4s;
+    animation-timing-function: ease-out;
+    animation-delay: 0;
+    animation-direction: alternate;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+    animation-play-state: running;
+}
+
+@keyframes backflip {
+    from {
+        transform: scale(1) rotate(0deg);
+
+    }
+
+    to {
+        transform: scale(0.7) rotate(360deg) translate(50%);
+    }
+}
+
+@keyframes attack {
+    0% {
+        transform: scale(0.7) rotate(360deg) translate(50%);
+
+    }
+
+    50% {
+        transform: scale(0.7) rotate(360deg) translate(-30%);
+
+    }
+
+    100% {
+        transform: scale(0.7) rotate(360deg) translate(50%);
+
+    }
+}
+
+@keyframes attackerAttack {
+    0% {
+        transform: scale(0.7) translate(-50%);
+
+    }
+
+    50% {
+        transform: scale(0.7) translate(30%);
+
+    }
+
+    100% {
+        transform: scale(0.7) translate(-50%);
+
+    }
+}
+
+@keyframes drop {
+    from {
+        transform: scale(0.7) translate(-50%, -150%);
+
+    }
+
+    to {
+        transform: scale(0.7) translate(-50%, 0%);
+    }
+}
+
+@media screen and (max-width: 500px) {
+
+    .baseText {
+        font-size: 2.5vw;
+    }
+
+    .battleReportText {
+        font-size: 1.8vw;
+    }
+
+    .battleReportTitle {
+        font-size: 3vw;
+    }
+
+    .statsTitle {
+        font-size: 1.8vw;
+    }
+
+}

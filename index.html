@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <link href="styles/style.css" rel="stylesheet">
+  <title>The Gainlings - JsFrame</title>
+</head>
+
+<body>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/@alch/alchemy-web3@latest/dist/alchemyWeb3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.8.1/dist/web3.min.js"></script>
+  <script src="scripts/abiContract.js"> </script>
+  <script src="scripts/abiMarketPlaceContract.js"> </script>
+  <script src="scripts/traits.js"> </script>
+  <script src="scripts/contractApi.js"> </script>
+  <script src="constants/constants.js"> </script>
+  <script>
+
+
+    //location.reload();
+    //TODO::::
+
+    //ADD FIGHT BUTTON FOR OPENSEA
+    //ADD MULTI CALL TO CONTRACT (SEED,BOUNTY,STACK,COOLDOWN)
+
+    //version
+    //console.log("version 0.0.28");
+    //parameters
+    let alchemyUrl = "wss://arb-mainnet.g.alchemy.com/v2/m23ZgnpZb9iWRGkY-NQSatkOGlHQcf_6";
+    let contractAddress = "0xD73cAe780EFCc7665753FCd3A79fA95aAC3191ef";
+    let marketPlaceContractAddress = "0x17596F4C9AAfa38Ca0Cd11DE76977A16e1a120D6";
+    //query
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const tokenId = urlParams.get('tokenId')
+    const testnetForce = true;
+    const paramSeasonNr = 2;
+
+    console.log("Loaded at: " + window.location.href + " extracted tokenId: " + tokenId.toString());
+
+    if (testnetForce) {
+      alchemyUrl = "wss://arb-goerli.g.alchemy.com/v2/4MrK62-P1B915foDXQuRWd_Xjwb0uT9Q";
+    }
+    else {
+      alchemyUrl = "wss://arb-mainnet.g.alchemy.com/v2/_t4VCQ19_KTwjbFHe8DwLcdrPjq2eFk9";
+    }
+
+
+
+
+    //GAMEVARIABLES\\
+    let fightData = {};
+    let _defenderId;
+    let _talkLoop = false;
+    let _baseView = true;
+    let _attackerSeed;
+    let _prisonValue;
+    let sentences = [
+      "Where are you mfer?!",
+      "I will break your gains!",
+      "Did you buy seals, coward?",
+      "I brawled with the bearz im ready!",
+      "Special thanks to @scottybmitch!",
+      "Here could be your Ad!",
+      "I'm not afraid!",
+      "I don't know what to say anymore",
+      "Are you hiding?",
+      "Don't you dare invading my frame!",
+      "This is the way!",
+      "Pew Pew",
+      "B U R N",
+      "Show me your pixels",
+      "I am a winling!",
+      "Wen die?",
+      "Are those people over there trembling in fear ready for the battle?",
+      "Victory is certain",
+      "Luke, I am your gainling",
+      "If you see me, it’s to late. Destiny is here",
+      "I am ready to embrace death. Are you?",
+      "You are going to regret crossing me",
+      "They'll never see what's comming!",
+      "Hodl my cosmo",
+      "Stop starring at my frame!",
+      "You burn... NOW!",
+      "Better make room for my fist, I'm going to ram it into your stomach",
+      "I will defend my frame with my life!"];
+
+    let testAttack = { "0": "2", "1": "{\"attacker\": \"11\",\"defender\": \"71\",\"aRandom\": \"94\",\"dRandom\": \"895\",\"time\": \"1677966743\",\"winner\": \"71\"}", "__length__": 2, "defender": "2", "output": "{\"attacker\": \"11\",\"defender\": \"71\",\"aRandom\": \"94\",\"dRandom\": \"895\",\"time\": \"1677966743\",\"winner\": \"71\"}" }
+    let testApproach = { "0": "1", "1": "{\"attacker\": \"11\",\"defender\": \"71\",\"aBounty\": \"21000000000000000\",\"dBounty\": \"1004000000000000\",\"aStack\": \"0\",\"dStack\": \"0\"}", "__length__": 2, "defender": "1", "output": "{\"attacker\": \"11\",\"defender\": \"71\",\"aBounty\": \"21000000000000000\",\"dBounty\": \"100400000000000000\",\"aStack\": \"0\",\"dStack\": \"0\"}" };
+
+    let testAttack0 = { "0": "2", "1": "{\"attacker\": \"11\",\"defender\": \"71\",\"aRandom\": \"94\",\"dRandom\": \"895\",\"time\": \"1677966743\",\"winner\": \"71\"}", "__length__": 2, "defender": "2", "output": "{\"attacker\": \"11\",\"defender\": \"71\",\"aRandom\": \"94\",\"dRandom\": \"895\",\"time\": \"1677966743\",\"winner\": \"71\"}" }
+    let testApproach0 = { "0": "1", "1": "{\"attacker\": \"11\",\"defender\": \"71\",\"aBounty\": \"21000000000000000\",\"dBounty\": \"1004000000000000\",\"aStack\": \"0\",\"dStack\": \"0\"}", "__length__": 2, "defender": "1", "output": "{\"attacker\": \"11\",\"defender\": \"71\",\"aBounty\": \"21000000000000000\",\"dBounty\": \"100400000000000000\",\"aStack\": \"0\",\"dStack\": \"0\"}" };
+
+
+    _setupAlchemyConnection(contractAddress, abiContract.abi, marketPlaceContractAddress, abiMarketPlaceContract.abi, alchemyUrl).then(() => {
+      console.log("contract " + contractAddress);
+
+      _getTokenSeed(tokenId, seed => {
+        
+        setup(document.body, seed, tokenId);
+        //_subscribeGainlingsEvents(onLiveGainlingsEvent, onLiveGainlingsEventError);
+        _subscribeApproachEvents(onLivegainlingsApproach, onLiveGainlingsEventError);
+        _subscribeAttackEvents(onLiveGainlingsAttack, onLiveGainlingsEventError);
+
+        _getTokenStats(tokenId, stats => {
+          console.log("STATS:" + JSON.stringify(stats));
+          onBountyUpdate(stats[1]);
+          onStackUpdate(stats[2]);
+          onCooldownUpdate(stats[3]);
+        })
+
+        checkHistoryApproachEvents();
+      })
+
+
+
+    });
+    let unfilledApproachEvents = [];
+    function checkHistoryApproachEvents() {
+      _getLatestBlock().then(blockNr => {
+        //console.log("Fetched blocknr: " + JSON.stringify(blockNr.number));
+        _getPastApproachEvents(blockNr.number - 500, blockNr.number).then(pastEvents => {
+          console.log("PastEvents: " + JSON.stringify(pastEvents));
+          pastEvents.forEach(gainlingEvent => {
+            if (gainlingEvent.returnValues["defender"] == tokenId) {
+              unfilledApproachEvents.push(gainlingEvent);
+            }
+          });
+
+          _getPastAttackEvents(blockNr.number - 500, blockNr.number).then(pastAttacks => {
+
+            unfilledApproachEvents.forEach(unfilled => {
+
+              var isUnfilled = true;
+              pastAttacks.forEach(pastAttack => {
+                if (pastAttack.returnValues["attacker"] == unfilled.returnValues["attacker"]) {
+                  isUnfilled = false;
+                }
+              });
+
+              if (isUnfilled) {
+                pastEventsFetched = true;
+                incectOpenAttack();
+              }
+            });
+          });
+        });
+      });
+    }
+
+    function processPastGainlingEvent(eventData) {
+
+      let evString = JSON.stringify(eventData);
+      console.log(evString);
+
+      let block = eventData.blockNumber;
+      let type = eventData.returnValues["0"];
+      let content = eventData.returnValues["1"];
+
+      processAnyEvent(block, type, content);
+
+
+    }
+    function processAnyEvent(block, type, content) {
+      if (type == 0) {
+        console.log("mint");
+      }
+      else if (type == 1) {
+        console.log("approach");
+        let data = JSON.parse(content);
+        unfilledApproachEvents.push(data);
+        console.log("Added approach to history: A:" + data.attacker + " D:" + data.defender);
+      }
+      else if (type == 2) {
+        console.log("attack");
+        if (unfilledApproachEvents.length < 1) return;
+        let data = JSON.parse(content);
+        let indexToRemove;
+        unfilledApproachEvents.forEach(unfilled => {
+          if (unfilled.attacker == data.attacker && unfilled.defender == data.defener) {
+            indexToRemove = unfilledApproachEvents.indexOf(unfilled);
+          }
+        })
+        unfilledApproachEvents.splice(indexToRemove, 1);
+        console.log("Resolved approach to history: A:" + data.attacker + " D:" + data.defender);
+      }
+      else if (type == 3) {
+        console.log("stage");
+      }
+      else if (type == 4) {
+        console.log("tokendata")
+      }
+    }
+    function incectOpenAttack() {
+      if (unfilledApproachEvents[0] != undefined) {
+        let unfilled = unfilledApproachEvents[0];
+        console.log("Unfilled approach event: " + JSON.stringify(unfilled));
+        let data = {
+          attacker: unfilled.returnValues["attacker"],
+          defender: unfilled.returnValues["defender"],
+          aBounty: unfilled.returnValues["aBounty"],
+          dBounty: unfilled.returnValues["dBounty"],
+          aStack: unfilled.returnValues["aStack"],
+          dStack: unfilled.returnValues["dStack"],
+        }
+        onLiveApproach(data);
+        var attackerId = unfilled.returnValues["attacker"];
+
+        _getTokenSeed(attackerId, seed => {
+          onAttackerSeed(seed);
+        })
+      }
+    }
+
+    setTimeout(() => {
+      //onLiveGainlingsEvent(testApproach);
+
+    }, 5000);
+
+    setTimeout(() => {
+      //onLiveGainlingsEvent(testAttack);
+
+    }, 9000);
+
+    //EXTERNAL DATA\\
+
+    function onLivegainlingsApproach(data, event) {
+      if (data.defender == tokenId) {
+        let attackerId = data.attacker;
+        onLiveApproach(data);
+        _getTokenSeed(attackerId, seed => {
+          console.log("Get token seed of attacker: " + attackerId + " Seed is: " + seed);
+          onAttackerSeed(seed);
+        })
+      }
+    }
+    function onLiveGainlingsAttack(data, event) {
+      if (data.defender == tokenId) {
+        let attackerId = data.attacker;
+        onLiveAttack(data);
+      }
+    }
+
+    function onLiveGainlingsEvent(data) {
+      let type = data["0"];
+
+      if (type == 0) {
+        console.log("mint");
+        return;
+      }
+      else if (type == 1) {
+        console.log("approach: " + JSON.stringify(data));
+        let attackSetupEvent = data["1"];
+        let eventJ = JSON.parse(attackSetupEvent);
+        let defenderId = eventJ["defender"];
+        if (defenderId == tokenId) {
+          let attackerId = eventJ["attacker"];
+          onLiveApproach(eventJ);
+          _getTokenSeed(attackerId, seed => {
+            onAttackerSeed(seed);
+          })
+        }
+      }
+      else if (type == 2) {
+        console.log("attack: " + JSON.stringify(data));
+        let attackStartEvent = data["1"];
+        let eventJ = JSON.parse(attackStartEvent);
+        let defenderId = eventJ["defender"];
+        if (defenderId == tokenId) {
+          let attackerId = eventJ["attacker"];
+          onLiveAttack(eventJ);
+        }
+      }
+      else if (type == 3) {
+        console.log("stage");
+        return;
+      }
+      else if (type == 4) {
+        console.log("tokendata")
+        return;
+      }
+    }
+    function onLiveGainlingsEventError(data) {
+
+    }
+    function onPastGainlingsEvent(data) {
+
+    }
+
+
+    //INTERFACE\\
+    function setup(parent, defenderSeed, defenderId, bounty = 0, stack = 0) {
+      _defenderId = defenderId;
+      buildDefenderBaseView(parent, defenderSeed, bounty, stack, defenderId);
+      handleBubble("setup");
+
+    }
+    function onLiveApproach(attackSetupEvent) {
+      let defenderId = attackSetupEvent.defender;
+      if (defenderId != _defenderId) return;
+      fightData.approach = attackSetupEvent;
+      approach();
+    }
+    function onLiveAttack(attackStartEvent) {
+      let defenderId = attackStartEvent.defender;
+      if (defenderId != _defenderId) return;
+      fightData.attack = attackStartEvent;
+      attack();
+    }
+    function onAttackerSeed(seed) {
+      fightData.seed = seed;
+      buildAttacker(document.getElementById('frame'), seed);
+
+    }
+    function onBountyUpdate(update) {
+
+      update = ToEth(update);
+      console.log("Bounty update: " + update)
+      update = Math.round((Number(update) + Number.EPSILON) * 100000000) / 100000000;
+      console.log("Bounty update: " + update)
+      document.getElementById('bountyValue').innerText = `${update}`;
+    }
+    function onStackUpdate(update) {
+      update = ToEth(update);
+      update = Math.round((Number(update) + Number.EPSILON) * 100000000) / 100000000;
+      document.getElementById('stackValue').innerText = `${update}`;
+    }
+    function onCooldownUpdate(update) {
+
+      if (parseInt(update) <= 0) return;
+
+      var prisonBowl = buildElement("div", "prisonBowl", "prisonBowl");
+      document.getElementById('frame').appendChild(prisonBowl);
+      var prisonValueTitle = buildElement("div", "prisonValueTitle", "prisonValue prisonValueTitle baseText", "seconds")
+      prisonBowl.appendChild(prisonValueTitle);
+      var prisonValue = buildElement("div", "prisonValue", "prisonValue baseText", update.toString())
+      prisonBowl.appendChild(prisonValue);
+      _prisonValue = update;
+      setTimeout(() => {
+        countDownPrisonValue();
+      }, "1000");
+    }
+
+    function countDownPrisonValue() {
+      console.log(_prisonValue);
+      _prisonValue = _prisonValue - 1 <= 0 ? 0 : _prisonValue - 1;
+      document.getElementById('prisonValue').innerText = _prisonValue;
+
+      if (_baseView) {
+        document.getElementById('prisonBowl').style.visibility = 'visible';
+      }
+      else {
+        document.getElementById('prisonBowl').style.visibility = 'hidden';
+      }
+
+
+      if (_prisonValue > 0) {
+        setTimeout(() => {
+          countDownPrisonValue();
+        }, "1000");
+      }
+      else {
+        document.getElementById('prisonBowl').style.visibility = 'hidden';
+      }
+
+
+    }
+    //GAME\\
+
+    function approach() {
+      _baseView = false;
+      _talkLoop = true;
+      animateFlipping();
+      talk();
+    }
+
+    function talk() {
+      if (!_talkLoop) return;
+
+      var rnd = Math.floor(Math.random() * (sentences.length - 1));
+      var text = sentences[rnd];
+      handleBubble(text);
+      setTimeout(() => {
+        handleBubble("clear");
+      }, 4000);
+      setTimeout(() => {
+        talk();
+      }, 6000);
+    }
+
+    function attack() {
+      _talkLoop = false;
+      var bowl = document.getElementById('prisonBowl');
+      if (bowl != undefined) {
+        bowl.style.visibility = 'hidden';
+      }
+      handleBubble("clear");
+      resetFlip();
+      animateBackflip();
+
+      setTimeout(() => {
+        animateDrop();
+
+      }, 1000);
+
+      setTimeout(() => {
+        animateAttack();
+      }, 2000);
+
+      setTimeout(() => {
+        blinkElement(document.getElementById('attackerContainer'), 6);
+      }, 2300);
+
+
+      setTimeout(() => {
+        animateAttackerAttack();
+      }, 3000);
+
+      setTimeout(() => {
+        blinkElement(document.getElementById('tokenContainer'), 6);
+      }, 3300);
+
+
+      setTimeout(() => {
+        if (fightData.attack.winner == tokenId) {
+          console.log("defenderWon")
+          burn('attackerContainer', 'burnedAttacker', fightData.attack.winner == tokenId);
+        }
+        else {
+          console.log("defenderLost")
+          burn('tokenContainer', 'burnedDefender', fightData.attack.winner == tokenId);
+        }
+
+      }, 5000);
+
+      setTimeout(() => {
+        showBattleReport();
+      }, 10000);
+
+    }
+
+    function showBattleReport() {
+      console.log("-- Battle report --");
+      console.log(JSON.stringify(fightData));
+
+      var battleReportContainer = buildElement("div", "battleReportContainer", "battleReportContainer");
+      var battleReport = buildElement("img", "battleReport", "battleReport");
+      battleReport.src = `assets/sprites/BattleReportBackground.png`;
+      battleReportContainer.appendChild(battleReport);
+
+      var titleString = `#${fightData.approach.attacker} vs #${fightData.approach.defender}`;
+      var titleElement = buildElement("div", "br_title", "battleReportTitle", titleString);
+      battleReportContainer.appendChild(titleElement);
+
+      let attID = fightData.approach.attacker;
+      let attMD = fightData.attackerMetadata;
+      let attATT = getAttackFromTraits(attMD);
+      let attDEF = getDefenseFromTraits(attMD);
+      let attRND = fightData.attack.aRandom;
+      let attPreBTY = parseFloat(fightData.approach.aBounty);
+      let attPreSTK = parseFloat(fightData.approach.aStack);
+
+      let defID = tokenId;
+      let defMD = fightData.defenderMetadata;
+      let defATT = getAttackFromTraits(defMD);
+      let defDEF = getDefenseFromTraits(defMD);
+      let defRND = fightData.attack.dRandom;
+      let defPreBTY = parseFloat(fightData.approach.dBounty);
+      let defPreSTK = parseFloat(fightData.approach.dStack);
+
+      let attIsWeak = getAuraWeakness(attMD[5]) == defMD[5];
+      let attTOT = attIsWeak ? parseFloat(attATT) + parseFloat(attRND) : parseFloat(attATT) + parseFloat(attRND) + parseFloat(attDEF);
+
+      let defIsWeak = getAuraWeakness(defMD[5]) == attMD[5];
+      let defTOT = defIsWeak ? parseFloat(defATT) + parseFloat(defRND) : parseFloat(defATT) + parseFloat(defRND) + parseFloat(defDEF);
+
+      buildBattleReportElement("br_attackerIdCalc", '11%', '3%', '12%', '44%', 'left', `#${attID}`, battleReportContainer) // 
+      buildBattleReportElement("br_attackerAuraCalc", '17%', '3%', '24%', '44%', 'left', `${attMD[5].toUpperCase()}`, battleReportContainer) // 
+      buildBattleReportElement("br_attackerAttackValueCalc", '9%', '3%', '42%', '44%', 'right', `${attATT}`, battleReportContainer) // `${fightData.metadata[5]}`
+      buildBattleReportElement("br_attackerLuckValueCalc", '9%', '3%', '54%', '44%', 'right', `${attRND}`, battleReportContainer) // `${fightData.metadata[5]}`
+      buildBattleReportElement("br_attackerDefValueCalc", '9%', '3%', '66%', '44%', 'right', `${attDEF}`, battleReportContainer, attIsWeak) // `${fightData.metadata[5]}`
+      buildBattleReportElement("br_attackerTotalValueCalc", '9%', '3%', '78%', '44%', 'right', `${attTOT}`, battleReportContainer) // `${fightData.metadata[5]}`
+
+      buildBattleReportElement("br_defenderIdCalc", '11%', '3%', '12%', '48%', 'left', `#${defID}`, battleReportContainer) // `#${fightData.approach.attacker}`
+      buildBattleReportElement("br_defenderAuraCalc", '17%', '3%', '24%', '48%', 'left', `${defMD[5].toUpperCase()}`, battleReportContainer) // `${fightData.metadata[5]}`
+      buildBattleReportElement("br_defenderAttackValueCalc", '9%', '3%', '42%', '48%', 'right', `${defATT}`, battleReportContainer) // `${fightData.metadata[5]}`
+      buildBattleReportElement("br_defenderLuckValueCalc", '9%', '3%', '54%', '48%', 'right', `${defRND}`, battleReportContainer) // `${fightData.metadata[5]}`
+      buildBattleReportElement("br_defenderDefValueCalc", '9%', '3%', '66%', '48%', 'right', `${defDEF}`, battleReportContainer, defIsWeak) // `${fightData.metadata[5]}`
+      buildBattleReportElement("br_defenderTotalValueCalc", '9%', '3%', '78%', '48%', 'right', `${defTOT}`, battleReportContainer) // `${fightData.metadata[5]}`
+
+      var auraString = `${attMD[5].toUpperCase()} AND ${defMD[5].toUpperCase()} HAVE NO WEAKNESS AGAINST EACH OTHER`;
+      if (attIsWeak) auraString = `${attMD[5].toUpperCase()} IS WORTH NOTHING AGAINST ${defMD[5].toUpperCase()}`;
+      else if (defIsWeak) auraString = `${defMD[5].toUpperCase()} IS WORTH NOTHING AGAINST ${attMD[5].toUpperCase()}`;
+      buildBattleReportElement("br_defenderTotalValueCalc", '70%', '8%', '15%', '54%', 'center', `${auraString}`, battleReportContainer) // `${auraString}`
+
+
+
+
+      let attackerWon = fightData.attack["winner"] == attID;
+      let loserId = attackerWon ? defID : attID;
+      let winnerId = attackerWon ? attID : defID;
+
+      var resultString = `#${winnerId} WON THE FIGHT`;
+      buildBattleReportElement("br_defenderTotalValueCalc", '70%', '8%', '15%', '64.5%', 'center', `${resultString}`, battleReportContainer) // `${auraString}`
+
+      let lBountyChange = attackerWon ? defPreBTY : attPreBTY;
+      let wBountyChange = attackerWon ? defPreBTY / 2 : attPreBTY / 2;
+      let lStackChange = attackerWon ? defPreSTK : attPreSTK;
+      let wStackChange = attackerWon ? defPreBTY / 2 : attPreBTY / 2;
+
+      let lBountyChangeEth = ToEth(lBountyChange.toString());
+      let wBountyChangeEth = ToEth(wBountyChange.toString());
+      let lStackChangeEth = ToEth(lStackChange.toString());
+      let wStackChangeEth = ToEth(wStackChange.toString());
+
+      lBountyChangeEth = Math.round((Number(lBountyChangeEth) + Number.EPSILON) * 100000) / 100000;
+      wBountyChangeEth = Math.round((Number(wBountyChangeEth) + Number.EPSILON) * 100000) / 100000;
+      lStackChangeEth = Math.round((Number(lStackChangeEth) + Number.EPSILON) * 100000) / 100000;
+      wStackChangeEth = Math.round((Number(wStackChangeEth) + Number.EPSILON) * 100000) / 100000;
+
+      let loserBtyChangeString = `-${lBountyChangeEth}`;
+      let winnerBtyChangeString = `+${wBountyChangeEth}`;
+
+      let loserStackChangeString = `-${lStackChangeEth}`;
+      let winnerStackChangeString = `+${wStackChangeEth}`;
+
+      let winnerBtyFinal = attackerWon ? wBountyChange + attPreBTY : wBountyChange + defPreBTY;
+      let winnerStkFinal = attackerWon ? wStackChange + attPreSTK : wStackChange + defPreSTK;
+
+      let winnerBtyFinalEth = ToEth(winnerBtyFinal.toString());
+      let winnerStkFinalEth = ToEth(winnerStkFinal.toString());
+
+      winnerBtyFinalEth = Math.round((Number(winnerBtyFinalEth) + Number.EPSILON) * 100000) / 100000;
+      winnerStkFinalEth = Math.round((Number(winnerStkFinalEth) + Number.EPSILON) * 100000) / 100000;
+
+      let winnerBtyFinalString = `${winnerBtyFinalEth}`;
+      let winnerStkFinalString = `${winnerStkFinalEth}`;
+
+      let loserIcon = buildElement("img", "loserIcon", "brIcon");
+      loserIcon.src = `assets/sprites/skull.png`;
+      loserIcon.style.left = '22%';
+      loserIcon.style.top = '81.6%';
+      battleReportContainer.appendChild(loserIcon);
+
+      let winnerIcon = buildElement("img", "loserIcon", "brIcon");
+      winnerIcon.src = `assets/sprites/reward.png`;
+      winnerIcon.style.left = '22%';
+      winnerIcon.style.top = '85.6%'
+      battleReportContainer.appendChild(winnerIcon);
+
+      buildBattleReportElement("br_attackerIdResult", '11%', '3%', '12%', '82%', 'left', `#${loserId}`, battleReportContainer);
+      buildBattleReportElement("br_attackerBountyChange", '15%', '3%', '24%', '82%', 'right', loserBtyChangeString, battleReportContainer);
+      buildBattleReportElement("br_attackerStackChange", '15%', '3%', '40%', '82%', 'right', loserStackChangeString, battleReportContainer);
+      buildBattleReportElement("br_attackerBountyResult", '15%', '3%', '56%', '82%', 'right', 0, battleReportContainer);
+      buildBattleReportElement("br_attackerStackResult", '15%', '3%', '72%', '82%', 'right', 0, battleReportContainer);
+
+      buildBattleReportElement("br_defenderIdResult", '11%', '3%', '12%', '86%', 'left', `#${winnerId}`, battleReportContainer);
+      buildBattleReportElement("br_defenderBountyChange", '15%', '3%', '24%', '86%', 'right', winnerBtyChangeString, battleReportContainer);
+      buildBattleReportElement("br_defenderStackChange", '15%', '3%', '40%', '86%', 'right', winnerStackChangeString, battleReportContainer);
+      buildBattleReportElement("br_defenderBountyResult", '15%', '3%', '56%', '86%', 'right', winnerBtyFinalString, battleReportContainer);
+      buildBattleReportElement("br_defenderStackResult", '15%', '3%', '72%', '86%', 'right', winnerStkFinalString, battleReportContainer);
+
+
+      let closeButton = buildElement("img", "brCloseButton", "brCloseButton");
+      closeButton.src = `assets/sprites/close.png`;
+      closeButton.style.left = '85%';
+      closeButton.style.top = '9%';
+      closeButton.addEventListener("click", function () {
+        document.getElementById('tokenContainer').classList = 'tokenContainer';
+        document.getElementById('attackerContainer').classList = 'attackerContainer';
+        document.getElementById('burnedAttacker').style.visibility = 'hidden';
+        document.getElementById('burnedDefender').style.visibility = 'hidden';
+        battleReportContainer.style.visibility = 'hidden';
+        if (attackerWon) {
+          let grave = buildElement("img", "grave", "grave");
+          grave.src = `assets/sprites/ThombstoneBackground.png`;
+          document.getElementById('frame').appendChild(grave);
+        }
+        else {
+          document.getElementById('bountyValue').textContent = winnerBtyFinalString;
+          document.getElementById('stackValue').textContent = winnerStkFinalString;
+          _baseView = true;
+          _talkLoop = false;
+        }
+      });
+
+      battleReportContainer.appendChild(closeButton);
+
+
+      document.getElementById('frame').appendChild(battleReportContainer);
+    }
+
+    function burn(hideId, showId, defenderWon) {
+      var fire = buildElement("img", "fire", "fire");
+      fire.src = `assets/sprites/Explosion.gif`;
+      if (defenderWon) {
+        fire.style.left = '5%';
+      }
+      else {
+        fire.style.left = '55%';
+      }
+      document.getElementById('frame').appendChild(fire);
+
+      setTimeout(() => {
+        document.getElementById(hideId).style.visibility = 'hidden';
+        document.getElementById(showId).style.visibility = 'visible';
+      }, 800);
+
+
+      setTimeout(() => {
+        document.getElementById('frame').removeChild(fire);
+      }, 1900);
+
+    }
+
+
+    function animateBackflip() {
+      document.getElementById('tokenContainer').classList.add("backflipAnimation");
+    }
+
+    function animateAttack() {
+      document.getElementById('tokenContainer').classList.add("attackAnimation");
+    }
+
+    function animateFlipping(direction = false) {
+      if (!_talkLoop) return;
+      var time = Math.random() * 5;
+      time = time < 0.7 ? 0.7 : time;
+      var element = document.getElementById('tokenContainer');
+      direction = !direction;
+      var flip = direction ? 1 : -1;
+      element.style.transform = `scaleX(${flip})`;
+      setTimeout(function () { animateFlipping(direction); }, (time * 1000));
+
+    }
+
+    function resetFlip() {
+      var element = document.getElementById('tokenContainer');
+      element.style.transform = `scaleX(${1})`;
+      direction = false;
+    }
+
+    function animateDrop() {
+      var attacker = document.getElementById('attackerContainer').classList.add("dropAnimation");
+
+    }
+
+    function animateAttackerAttack() {
+      var attacker = document.getElementById('attackerContainer').classList.add("attackerAttackAnimation");
+    }
+
+    function blinkElement(element, blinks, toggle = false) {
+      blinks--;
+      if (blinks < 0) return;
+      toggle = !toggle;
+      var state = toggle ? 'hidden' : 'visible';
+      element.style.visibility = state;
+      setTimeout(function () { blinkElement(element, blinks, toggle); }, (200));
+    }
+
+    function handleBubble(text, approach = true) {
+      if (!_baseView && !approach) return;
+      if (text == "setup") {
+        var bubble = buildElement("img", "bubble", "bubble", "bubble");
+        bubble.src = `assets/sprites/SpeakBubble.png`;
+        frame.appendChild(bubble);
+
+        var bubbleText = buildElement("div", "bubbleText", "baseText bubbleText", `Lorem ipsum dolor`);
+        frame.appendChild(bubbleText);
+      }
+      else if (text == "clear") {
+        var bubbleText = document.getElementById('bubbleText');
+        var bubble = document.getElementById('bubble');
+        bubble.style.visibility = 'hidden';
+        bubbleText.style.visibility = 'hidden';
+      }
+      else {
+        var bubbleText = document.getElementById('bubbleText');
+        var bubble = document.getElementById('bubble');
+        bubbleText.innerText = text;
+        bubble.style.visibility = 'visible';
+        bubbleText.style.visibility = 'visible';
+
+
+      }
+    }
+
+    function buildLink() {
+      var button = buildElement("div", "btn", "attackBtn");
+      button.addEventListener("mouseover", (event) => {
+        handleBubble("CTRL + CLICK TO ATTACK ME! DONT YOU DARE!", false);
+      });
+      button.addEventListener("mouseleave", (event) => {
+        handleBubble("clear");
+      });
+
+      button.style.backgroundImage = "url('assets/sprites/Attack.gif')"
+      var href = buildElement("a", "attackBtn", "none");
+      href.appendChild(button);
+      let newUrl = `https://fight.thegainlings.io/?defender=${tokenId}`;
+      href.href = newUrl;
+      return href;
+    }
+
+    function buildDefenderBaseView(parent, seeed, bounty, stack, tokenId) {
+      var metadata = buildTraitsFromSeed(seeed);
+      console.log("Seed is " + seeed)
+
+      fightData.defenderMetadata = metadata;
+      var frame = buildElement("div", "frame", "frame");
+
+      var link = buildLink();
+      frame.appendChild(link);
+
+
+      if(seeed > 0){
+        var aura = buildElement("img", "background", "background");
+      aura.src = `assets/traits/Aura/${metadata[5]}.png`;
+      frame.appendChild(aura);
+
+      var burned = buildElement("img", "burnedDefender", "burnedDefender");
+      burned.src = `assets/sprites/CharacterBurned.png`;
+      frame.appendChild(burned);
+      }
+      
+
+
+
+      var tokenContainer = buildElement("div", "tokenContainer", "tokenContainer");
+
+      var characterImage = buildElement("img", "traitImage", "traitImage");
+      characterImage.src = "assets/sprites/Character.png";
+      tokenContainer.appendChild(characterImage);
+
+      if(seeed > 0){
+        for (let index = 0; index < metadata.length - 1; index++) {
+        var traitImage = buildElement("img", "traitImage", "traitImage");
+        traitImage.src = `assets/traits/${_traitTypeNames[index]}/${metadata[index]}.png`;
+        tokenContainer.appendChild(traitImage);
+      }
+      }
+     
+      frame.appendChild(tokenContainer);
+
+      var nameFrame = buildElement("img", "nameFrame", "nameFrame");
+      nameFrame.src = "assets/sprites/FrameFullTinyThin.png";
+      frame.appendChild(nameFrame);
+
+      var nameValue = buildElement("div", "nameValue", "baseText nameValue", `GAINLING #${tokenId}`);
+      frame.appendChild(nameValue);
+
+
+      var nameButton = buildElement("div", "nameButton", "nameButton");
+      nameButton.addEventListener("mouseover", (event) => {
+        handleBubble("THAT'S MY NAME! ISN'T IT A REAL GAINERS NAME?", false);
+      });
+      nameButton.addEventListener("mouseleave", (event) => {
+        handleBubble("clear");
+      });
+      frame.appendChild(nameButton);
+
+      var bountyFrame = buildElement("img", "bountyFrame", "woodenFrame bountyFrame");
+      bountyFrame.src = "assets/sprites/FrameFullSmaller.png";
+      frame.appendChild(bountyFrame);
+
+      var bountyIcon = buildElement("img", "bountyIcon", "icon bountyIcon");
+      bountyIcon.src = "assets/sprites/BountyIcon.png";
+      frame.appendChild(bountyIcon);
+
+      var bountyValue = buildElement("div", "bountyValue", "baseText bountyValue", `${bounty}`);
+      frame.appendChild(bountyValue);
+
+      var bountyCurrency = buildElement("div", "bountyCurrency", "baseText bountyCurrency", "ETH");
+      frame.appendChild(bountyCurrency);
+
+      var bountyButton = buildElement("div", "bountyButton", "bountyButton");
+      bountyButton.addEventListener("mouseover", (event) => {
+        handleBubble("THE BOUNTY IS WHAT YOU GET WEN YOU KILL ME!", false);
+      });
+      bountyButton.addEventListener("mouseleave", (event) => {
+        handleBubble("clear");
+      });
+      frame.appendChild(bountyButton);
+
+      var stackFrame = buildElement("img", "stackFrame", "woodenFrame stackFrame");
+      stackFrame.src = "assets/sprites/FrameFullSmaller.png";
+      frame.appendChild(stackFrame);
+
+      var stackIcon = buildElement("img", "stackIcon", "icon stackIcon");
+      stackIcon.src = "assets/sprites/StackIcon.png";
+      frame.appendChild(stackIcon);
+
+      var stackValue = buildElement("div", "stackValue", "baseText stackValue", `${stack}`);
+      frame.appendChild(stackValue);
+
+      var stackCurrency = buildElement("div", "stackCurrency", "baseText stackCurrency", "ETH");
+      frame.appendChild(stackCurrency);
+
+      var stackButton = buildElement("div", "stackButton", "stackButton");
+      stackButton.addEventListener("mouseover", (event) => {
+        handleBubble("THE STACK IS WHAT MY OWNER GETS WEN I DIE!", false);
+      });
+      stackButton.addEventListener("mouseleave", (event) => {
+        handleBubble("clear");
+      });
+      frame.appendChild(stackButton);
+
+      var statsContainer = buildElement("div", "statsContainer", "statsContainer");
+
+      var statsTitle = buildElement("div", "statsTitle", "baseText statsTitle", "STATS")
+
+      var attackStatIcon = buildElement("img", "attackStatIcon", "statIcon");
+      attackStatIcon.src = "assets/sprites/stats/AttackStat.png";
+      attackStatIcon.style.top = '35%';
+      var attackStatValue = buildElement("div", "attackStatValue", "baseText statValue", "9999")
+      attackStatValue.style.top = '35%';
+
+
+      var defenseStatIcon = buildElement("img", "defenseStatIcon", "statIcon");
+      defenseStatIcon.src = "assets/sprites/stats/DefenseStat.png";
+      defenseStatIcon.style.top = '55%';
+      var defenseStatValue = buildElement("div", "defenseStatValue", "baseText statValue", "9999")
+      defenseStatValue.style.top = '55%';
+
+      var weightStatIcon = buildElement("img", "weightStatIcon", "statIcon");
+      weightStatIcon.src = "assets/sprites/stats/WeightStat.png";
+      weightStatIcon.style.top = '75%';
+      var weightStatValue = buildElement("div", "weightStatValue", "baseText statValue", "9999")
+      weightStatValue.style.top = '75%';
+
+
+      statsContainer.appendChild(attackStatValue);
+      statsContainer.appendChild(defenseStatValue);
+      statsContainer.appendChild(weightStatValue);
+      statsContainer.appendChild(statsTitle);
+      statsContainer.appendChild(attackStatIcon);
+      statsContainer.appendChild(defenseStatIcon);
+      statsContainer.appendChild(weightStatIcon);
+      frame.appendChild(statsContainer);
+
+      var inventoryContainer = buildElement("div", "inventory", "inventory");
+
+      var helmetButton = buildStatButton("statButtonHelmet", '21%', "assets/sprites/inventory/HelmetIcon.png", metadata[2])
+      var armourButton = buildStatButton("statButtonArmour", '37%', "assets/sprites/inventory/ArmourIcon.png", metadata[0])
+      var weaponButton = buildStatButton("statButtonWeapon", '54%', "assets/sprites/inventory/WeaponIcon.png", metadata[4])
+      var shieldButton = buildStatButton("statButtonShield", '69%', "assets/sprites/inventory/ShieldIcon.png", metadata[3])
+      var shoesButton = buildStatButton("statButtonShoes", '86%', "assets/sprites/inventory/ShoesIcon.png", metadata[1])
+
+      var inventoryButton = buildElement("div", "inventoryButton", "inventoryButton");
+      inventoryButton.style.backgroundImage = "url('assets/sprites/inventory/FrameSquare.png')";
+      inventoryButton.addEventListener("mouseover", (event) => {
+        if(seeed <= 0) return;
+        if (!_baseView) return;
+        inventoryButton.style.backgroundImage = "url('assets/sprites/inventory/InventoryFrame.png')";
+        inventoryButton.style.height = '58%';
+        helmetButton.style.visibility = 'visible';
+        armourButton.style.visibility = 'visible';
+        weaponButton.style.visibility = 'visible';
+        shieldButton.style.visibility = 'visible';
+        shoesButton.style.visibility = 'visible';
+      });
+      inventoryButton.addEventListener("mouseleave", (event) => {
+
+        helmetButton.style.visibility = 'hidden';
+        armourButton.style.visibility = 'hidden';
+        weaponButton.style.visibility = 'hidden';
+        shieldButton.style.visibility = 'hidden';
+        shoesButton.style.visibility = 'hidden';
+        inventoryButton.style.backgroundImage = "url('assets/sprites/inventory/FrameSquare.png')";
+        inventoryButton.style.height = '12%';
+
+      });
+
+
+      inventoryButton.appendChild(helmetButton);
+      inventoryButton.appendChild(armourButton);
+      inventoryButton.appendChild(weaponButton);
+      inventoryButton.appendChild(shieldButton);
+      inventoryButton.appendChild(shoesButton);
+
+      frame.appendChild(inventoryContainer);
+      frame.appendChild(inventoryButton);
+
+
+
+
+      parent.appendChild(frame);
+    }
+
+    function buildStatButton(className, top, src, metadata) {
+      var button = buildElement("img", "statButton", "statButton " + className)
+      button.src = src;
+      button.style.top = top;
+      button.value = metadata;
+
+      button.addEventListener("mouseover", (event) => {
+        showTraitStats(metadata);
+      });
+      button.addEventListener("mouseleave", (event) => {
+        document.getElementById('statsContainer').style.visibility = 'hidden';
+      });
+      return button;
+    }
+
+    function showTraitStats(trait) {
+      //console.log("show stats for " + trait);
+      var attributes = getAttributesForTrait(trait);
+
+      document.getElementById('statsContainer').style.visibility = 'visible';
+      document.getElementById('statsTitle').innerText = getShortName(trait);
+
+      document.getElementById('attackStatValue').innerText = attributes.attack;
+      document.getElementById('defenseStatValue').innerText = attributes.defense;
+      document.getElementById('weightStatValue').innerText = attributes.weight;
+
+    }
+
+    function buildBattleReportElement(id, w, h, l, t, align, content, container, lineThrough = false) {
+      var element = buildElement("div", id, "battleReportText", content);
+      element.style.height = h;
+      element.style.width = w;
+      element.style.left = l;
+      element.style.top = t;
+      element.style.textAlign = align;
+      if (lineThrough) element.style.textDecoration = 'line-through';
+      container.appendChild(element);
+    }
+
+    function buildAttacker(parent, seeed) {
+      _attackerSeed = seeed;
+
+      var metadata = buildTraitsFromSeed(seeed);
+      fightData.attackerMetadata = metadata;
+      var burned = buildElement("img", "burnedAttacker", "burnedAttacker");
+      burned.src = `assets/sprites/CharacterBurned.png`;
+      parent.appendChild(burned);
+
+      var attackerContainer = buildElement("div", "attackerContainer", "attackerContainer");
+
+      var characterImage = buildElement("img", "attackerTraitImage", "traitImage attackerTraitImage");
+      characterImage.src = "assets/sprites/Character.png";
+      attackerContainer.appendChild(characterImage);
+
+      for (let index = 0; index < metadata.length - 1; index++) {
+        var traitImage = buildElement("img", "attackerTraitImage", "traitImage attackerTraitImage");
+        console.log(`assets/traits/${_traitTypeNames[index]}/${metadata[index]}.png`)
+        traitImage.src = `assets/traits/${_traitTypeNames[index]}/${metadata[index]}.png`;
+        attackerContainer.appendChild(traitImage);
+      }
+      parent.appendChild(attackerContainer);
+    }
+
+    function buildElement(elementType, id, classList, content) {
+      var divElement = document.createElement(elementType);
+      divElement.id = id;
+
+      if (typeof classList === 'undefined')
+        return divElement;
+
+      divElement.classList = classList;
+      if (typeof content === 'undefined')
+        return divElement;
+
+      divElement.innerHTML = `${content.toString()}`
+      return divElement;
+    }
+
+  </script>
+</body>
+
+</html>

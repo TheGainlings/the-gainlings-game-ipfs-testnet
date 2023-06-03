@@ -1,0 +1,29 @@
+
+stages:
+  - upload
+  - uploadConstants
+
+upload:
+  stage: upload
+  image: alpine
+  tags:
+    - linux
+  script: 
+    - lftp --version
+    - lftp -c "set ftp:ssl-force true; set ssl:verify-certificate false; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOSTNAME; mirror -Renv ./ ./web/testnet-webgl"
+
+
+uploadConstants:
+  stage: uploadConstants
+  image: alpine
+  tags: 
+    - linux  
+  script:
+    - echo 'const CONTRACT_ADDRESS="'$TOKEN_CONTRACT_ADDRESS'";' > constants.js
+    - echo 'const MARKET_CONTRACT_ADDRESS="'$MARKET_CONTRACT_ADDRESS'";' >> constants.js
+    - echo 'const TROPHY_CONTRACT_ADDRESS="'$TROPHY_CONTRACT_ADDRESS'";' >> constants.js
+    - echo 'const CONTRACT_ADDRESS_TESTNET="'$TOKEN_CONTRACT_ADDRESS_TESTNET'";' >> constants.js
+    - echo 'const MARKET_CONTRACT_ADDRESS_TESTNET="'$MARKET_CONTRACT_ADDRESS_TESTNET'";' >> constants.js
+    - echo 'const TROPHY_CONTRACT_ADDRESS_TESTNET="'$TROPHY_CONTRACT_ADDRESS_TESTNET'";' >> constants.js
+    - echo 'const GRAPH_URL="'$GRAPH_URL'";' >> constants.js
+    - lftp -c "set ftp:ssl-force true; set ssl:verify-certificate false; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOSTNAME; pwd ; cd ./web/testnet-webgl/constants; put ./constants.js -o constants.js"
